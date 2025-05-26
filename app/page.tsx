@@ -6,8 +6,11 @@ import Link from 'next/link';
 // import UnknownFaceToggle from '@/components/dashboard/UnknownFaceToggle';
 // import FaceRecognitionStats from '@/components/dashboard/FaceRecognitionStats';
 import AdminHeader from './components/admin-header';
+import { getNotifications } from './helper';
+import { CurrentPrediction } from './types';
 
 export default function AdminDashboard() {
+  const [recent, setRecent] = React.useState({} as CurrentPrediction);
   // Mock data for the dashboard
   const stats = {
     cameras: 24,
@@ -16,36 +19,18 @@ export default function AdminDashboard() {
     alerts: 5
   };
   
-  const recentIncidents = [
-    { id: 1, title: 'Suspicious behavior detected', location: 'Main Entrance', time: '10 minutes ago', severity: 'high', status: 'investigating' },
-    { id: 2, title: 'Unidentified person in restricted area', location: 'Server Room', time: '45 minutes ago', severity: 'critical', status: 'open' },
-    { id: 3, title: 'Object left unattended', location: 'Parking Lot B', time: '2 hours ago', severity: 'medium', status: 'investigating' },
-    { id: 4, title: 'Recognized face match (80%)', location: 'North Gate', time: '3 hours ago', severity: 'medium', status: 'resolved' },
-  ];
-  
-  const hotspots = [
-    { id: 1, name: 'Main Entrance', incidents: 12, riskLevel: 'medium' },
-    { id: 2, name: 'Parking Lot B', incidents: 8, riskLevel: 'high' },
-    { id: 3, name: 'Server Room', incidents: 5, riskLevel: 'critical' },
-    { id: 4, name: 'North Gate', incidents: 4, riskLevel: 'low' },
-  ];
-  
-  const detectionsByType = {
-    face: 45,
-    object: 67,
-    behavior: 30
-  };
-  
-  const detectionTrend = [
-    { date: 'Mon', count: 18 },
-    { date: 'Tue', count: 22 },
-    { date: 'Wed', count: 30 },
-    { date: 'Thu', count: 25 },
-    { date: 'Fri', count: 32 },
-    { date: 'Sat', count: 15 },
-    { date: 'Sun', count: 20 },
-  ];
-  
+  // const recentIncidents = [
+  //   { id: 1, title: 'Suspicious behavior detected', location: 'Main Entrance', time: '10 minutes ago', severity: 'high', status: 'investigating' },
+  //   { id: 2, title: 'Unidentified person in restricted area', location: 'Server Room', time: '45 minutes ago', severity: 'critical', status: 'open' },
+  //   { id: 3, title: 'Object left unattended', location: 'Parking Lot B', time: '2 hours ago', severity: 'medium', status: 'investigating' },
+  //   { id: 4, title: 'Recognized face match (80%)', location: 'North Gate', time: '3 hours ago', severity: 'medium', status: 'resolved' },
+  // ];
+  React.useEffect(() => {
+    // Fetch data from the API
+    getNotifications().then((value)=>{
+      setRecent(value);
+    })
+  },);
   return (
     <div className="min-h-screen bg-gray-100">
       <AdminHeader />
@@ -197,71 +182,48 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-1">
             {/* Recent Incidents */}
             <div className="bg-white shadow rounded-lg lg:col-span-2">
               <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Recent Incidents
+                <h3 className="text-lg leading-6 font-bold text-gray-900">
+                  Notifications
                 </h3>
               </div>
               <div className="overflow-hidden">
                 <ul className="divide-y divide-gray-200">
-                  {recentIncidents.map((incident) => (
-                    <li key={incident.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                 
+                    <li className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className={`h-2.5 w-2.5 rounded-full mr-2 ${
-                            incident.severity === 'critical' ? 'bg-red-600' : 
-                            incident.severity === 'high' ? 'bg-orange-500' : 
-                            incident.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                            recent.prediction === 'violence' ? 'bg-red-600' : 
+                            'bg-green-500'
                           }`}></div>
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {incident.title}
+                            {recent.prediction}
                           </p>
                         </div>
                         <div className="ml-2 flex-shrink-0 flex">
                           <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            incident.status === 'open' ? 'bg-yellow-100 text-yellow-800' : 
-                            incident.status === 'investigating' ? 'bg-blue-100 text-blue-800' : 
-                            'bg-green-100 text-green-800'
+                            'bg-yellow-100 text-yellow-800' 
+                            // incident.status === 'investigating' ? 'bg-blue-100 text-blue-800' : 
+                            // 'bg-green-100 text-green-800'
                           }`}>
-                            {incident.status.charAt(0).toUpperCase() + incident.status.slice(1)}
+                           Confidence {recent.confidence}
                           </p>
                         </div>
                       </div>
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <p className="flex items-center text-sm text-gray-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                            </svg>
-                            {incident.location}
-                          </p>
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {incident.time}
-                        </div>
-                      </div>
+                      
                     </li>
-                  ))}
+             
                 </ul>
-                <div className="bg-gray-50 px-4 py-4 sm:px-6 border-t border-gray-200">
-                  <div className="text-sm">
-                    <Link href="/admin/incidents" className="font-medium text-blue-600 hover:text-blue-500">
-                      View all incidents
-                    </Link>
-                  </div>
-                </div>
+                
               </div>
             </div>
             
             {/* Hotspots */}
-            <div className="bg-white shadow rounded-lg">
+            {/* <div className="bg-white shadow rounded-lg">
               <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                   Hotspot Areas
@@ -299,11 +261,11 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
           
           {/* Detection Analytics */}
-          <div className="mt-8 bg-white shadow rounded-lg">
+          {/* <div className="mt-8 bg-white shadow rounded-lg">
             <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Detection Analytics
@@ -357,10 +319,10 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           
           {/* Control Panel */}
-          <div className="mt-8 bg-white shadow rounded-lg">
+          {/* <div className="mt-8 bg-white shadow rounded-lg">
             <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Surveillance Control Panel
@@ -468,7 +430,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>
